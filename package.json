@@ -1,0 +1,23 @@
+{
+  "name": "svelte-use-material",
+  "version": "0.0.1",
+  "description": "Material-components and use-function for svelte",
+  "main": "index.js",
+  "repository": "https://github.com/wareset/svelte-use-material.git",
+  "author": "wareset <git@wareset.com>",
+  "license": "MIT",
+  "files": [
+    "index.js",
+    "lib",
+    "components",
+    "LICENSE",
+    "README.md"
+  ],
+  "dependencies": {
+    "kebab-case": "^1.0.0",
+    "material-components-web": "^7.0.0"
+  },
+  "peerDependencies": {
+    "svelte": "^3.0.0"
+  }
+}
