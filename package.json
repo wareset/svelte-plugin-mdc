@@ -19,5 +19,8 @@
   },
   "peerDependencies": {
     "svelte": "^3.24.0"
+  },
+  "scripts": {
+    "deploy:site": "git push origin `git subtree split --prefix site/__sapper__/export/svelte-use-material master`:gh-pages --force"
   }
 }
