@@ -1,0 +1,17 @@
+<script>
+import Node from 'svelte-plugin-node';
+
+export let tag = 'div';
+
+export let labelTag= 'h3';
+export let label = 'label';
+</script>
+
+<template lang="pug">
+svelte:options(immutable="{true}")
+
+Node.mdc-list-group(bind:tag, bind:node)
+  +if('label')
+    Node.mdc-list-group__subheader(bind:tag!="{labelTag}") {label}
+  slot
+</template>

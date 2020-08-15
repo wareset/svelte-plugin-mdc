@@ -1,0 +1,12 @@
+<script>
+import Node from 'svelte-plugin-node';
+
+export let tag = 'span';
+</script>
+
+<template lang="pug">
+svelte:options(immutable="{true}")
+
+Node.mdc-ripple(bind:tag, bind:node)
+  slot
+</template>

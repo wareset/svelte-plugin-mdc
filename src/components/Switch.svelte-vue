@@ -1,0 +1,18 @@
+<script>
+import Node from 'svelte-plugin-node';
+import { uid } from '../../mdc';
+
+export let tag = 'div';
+export let id = 'mdc-switch-' + uid();
+export let value = id;
+</script>
+
+<template lang="pug">
+svelte:options(immutable="{true}")
+
+Node.mdc-switch(bind:tag, bind:node): div(style="height:18px;")
+  .mdc-switch__track
+  .mdc-switch__thumb-underlay
+    .mdc-switch__thumb
+    Node.mdc-switch__native-control(tag="input", type="checkbox", bind:id, bind:value, bind:group, bind:checked, bind:indeterminate, on:focus, on:blur, on:change, on:input, "{disabled}", "{required}", role="switch")
+</template>

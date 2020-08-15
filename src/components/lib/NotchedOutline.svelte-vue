@@ -1,0 +1,21 @@
+<script>
+import Node from 'svelte-plugin-node';
+
+export let tag = 'span';
+export let outlined;
+
+$: upgraded = !notched;
+</script>
+
+<template lang="pug">
+svelte:options(immutable="{true}")
+
++if('outlined')
+  Node.mdc-notched-outline(bind:tag, bind:node)
+    span.mdc-notched-outline__leading
+    span.mdc-notched-outline__notch
+      slot
+    span.mdc-notched-outline__trailing
+  +else
+    slot
+</template>

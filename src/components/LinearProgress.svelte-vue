@@ -1,0 +1,31 @@
+<script>
+import Node from 'svelte-plugin-node';
+
+export let tag = 'div';
+export let label = '';
+export let value, min, max;
+
+$: min = +min || 0;
+$: max = +max || 100;
+$: value = +value || min;
+</script>
+
+<template lang="pug">
+svelte:options(immutable="{true}")
+
+Node.mdc-linear-progress(bind:tag, bind:node, role="progressbar",
+  aria-valuemin!="{min}", aria-valuemax!="{max}", aria-valuenow!="{value}", aria-label!="{label}")
+
+
+  .mdc-linear-progress__buffer
+    .mdc-linear-progress__buffer-dots(style="position:absolute;width:100%;height:100%;")
+    .mdc-linear-progress__buffer-bar(style!="{`position:absolute;width:auto;height:100%; left:${min}%;right:${100-max}%;`}")
+
+
+
+  .mdc-linear-progress__bar.mdc-linear-progress__primary-bar(
+    style!="{!indeterminate && `transform:scaleX(1);left:${min}%;width:${(value*((max-min)/100))}%;`}")
+    span.mdc-linear-progress__bar-inner
+  .mdc-linear-progress__bar.mdc-linear-progress__secondary-bar
+    span.mdc-linear-progress__bar-inner
+</template>

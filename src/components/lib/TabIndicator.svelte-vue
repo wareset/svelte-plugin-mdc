@@ -1,0 +1,18 @@
+<script>
+import Node from 'svelte-plugin-node';
+
+export let tag = 'span';
+
+export let icon, underline;
+$: fade = !noTransition;
+</script>
+
+<template lang="pug">
+svelte:options(immutable="{true}")
+
+Node.mdc-tab-indicator(bind:tag, bind:node)
+  span.mdc-tab-indicator__content(
+    class:mdc-tab-indicator__content--icon!="{icon}",
+    class:mdc-tab-indicator__content--underline!="{underline}"
+  )
+</template>

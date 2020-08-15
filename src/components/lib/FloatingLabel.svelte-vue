@@ -1,0 +1,16 @@
+<script>
+import Node from 'svelte-plugin-node';
+
+export let tag = 'span';
+export let label = 'label';
+</script>
+
+<template lang="pug">
+svelte:options(immutable="{true}")
+
++if('label')
+  Node.mdc-floating-label(bind:tag, bind:node)
+    |{label}
+    |
+    slot
+</template>

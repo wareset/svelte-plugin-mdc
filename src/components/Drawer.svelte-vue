@@ -1,0 +1,12 @@
+<script>
+import Node from 'svelte-plugin-node';
+
+export let tag = 'aside';
+</script>
+
+<template lang="pug">
+svelte:options(immutable="{true}")
+
+Node.mdc-drawer(bind:tag, bind:node)
+  slot
+</template>

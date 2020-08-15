@@ -1,0 +1,21 @@
+<script>
+import Node from 'svelte-plugin-node';
+import { uid } from '../../mdc';
+
+export let tag = 'div';
+export let id = 'mdc-checkbox-' + uid();
+export let value = id;
+</script>
+
+<template lang="pug">
+svelte:options(immutable="{true}")
+
+Node.mdc-checkbox(bind:tag, bind:node)
+  Node.mdc-checkbox__native-control(tag="input", type="checkbox", bind:id, bind:value, bind:group,
+    bind:checked, bind:indeterminate, on:focus, on:blur, on:change, on:input, "{disabled}", "{required}")
+  div.mdc-checkbox__background
+    svg.mdc-checkbox__checkmark(viewBox="0 0 24 24")
+      path.mdc-checkbox__checkmark-path(fill="none", d="M1.73,12.91 8.1,19.28 22.79,4.59")
+    div.mdc-checkbox__mixedmark
+  div.mdc-checkbox__ripple
+</template>

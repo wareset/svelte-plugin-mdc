@@ -1,0 +1,83 @@
+<script context="module">
+import { LIST_ROLES } from '../MDCList/MDCList.svelte';
+export const LIST_ITEM_ROLES = ['option', 'radio', 'checkbox', 'menuitem'];
+
+export const LIST_ITEM_ROLES_OBJ = {
+  [LIST_ROLES[0]]: LIST_ITEM_ROLES[0],
+  [LIST_ROLES[1]]: LIST_ITEM_ROLES[1],
+  [LIST_ROLES[2]]: LIST_ITEM_ROLES[2],
+  [LIST_ROLES[3]]: LIST_ITEM_ROLES[3]
+};
+</script>
+
+<script>
+import Node from 'svelte-plugin-node';
+import { uid } from '../../mdc';
+import MDCIcon from '../MDCIcon';
+import MDCRadio from '../MDCRadio';
+import MDCCheckbox from '../MDCCheckbox';
+const INPUTS = { radio: MDCRadio, checkbox: MDCCheckbox };
+
+let __tag__ = 'span';
+export { __tag__ as tag };
+export let id = 'mdc-list-item-' + uid();
+export let value = id;
+const start_indeterminate = indeterminate;
+
+export let label = 'label';
+export let secondary = 'secondary';
+
+let __role__;
+export { __role__ as role };
+$: if (LIST_ITEM_ROLES.indexOf(__role__) < 0) __role__ = undefined;
+
+export let icon = 'menu',
+  iconTrailing = 'menu';
+
+import { getContext, onMount, tick } from 'svelte';
+const { listTag$, listRole$, listGroup$, listMultiple$ } = getContext('MDCList');
+$: tag = $listTag$ === 'ul' ? 'li' : __tag__;
+$: role = __role__ || LIST_ITEM_ROLES_OBJ[$listRole$];
+
+const onClick = e => (checked = !checked);
+
+$: activated = checked;
+$: selected = checked;
+
+onMount(async () => {
+  await tick();
+  if (start_indeterminate === undefined && indeterminate) indeterminate = false;
+});
+</script>
+
+<template lang="pug">
+svelte:options(immutable="{true}")
+
+Node.mdc-list-item(bind:tag, bind:node, on:click!="{onClick}",
+  tabindex!="{checked ? '-1' : '-1' }", "{role}",
+  aria-checked!="{checked}", aria-selected!="{selected}")
+  span.mdc-list-item__ripple
+
+  +if('icon')
+    MDCIcon.mdc-list-item__graphic(aria-hidden="true") {icon}
+
+  +if('role in INPUTS')
+    span.mdc-list-item__graphic
+      svelte:component(this!="{INPUTS[role]}", bind:id, bind:value,
+        bind:group!="{$listGroup$}", bind:checked, bind:indeterminate)
+    +else
+      Node(tag="input", type!="{$listMultiple$ ? `checkbox` : `radio`}", bind:id,
+        style!="display:none;"
+        bind:value, bind:group!="{$listGroup$}", bind:checked, bind:indeterminate)
+
+  span.mdc-list-item__text(style="margin-right:1em;")
+    +if('label')
+      span.mdc-list-item__primary-text(
+        style!="{secondary ? `margin-top:-0.75em;margin-bottom:-1.375em;` : `margin-top:-1em;`}") {label}
+    +if('secondary')
+      span.mdc-list-item__secondary-text(
+        style!="{!label && `margin-top:-0.375em;`}") {secondary}
+
+  +if('iconTrailing')
+    MDCIcon.mdc-list-item__meta(aria-hidden="true") {iconTrailing}
+</template>

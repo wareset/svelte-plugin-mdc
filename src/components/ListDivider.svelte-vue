@@ -1,0 +1,17 @@
+<script>
+import Node from 'svelte-plugin-node';
+
+let __tag__ = 'hr';
+export { __tag__ as tag };
+
+import { getContext } from 'svelte';
+const { listTag$ } = getContext('MDCList');
+$: tag = $listTag$ === 'ul' ? 'li' : __tag__;
+</script>
+
+<template lang="pug">
+svelte:options(immutable="{true}")
+
+Node.mdc-list-divider(bind:tag, bind:node, role="separator")
+
+</template>

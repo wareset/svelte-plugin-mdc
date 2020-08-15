@@ -1,0 +1,51 @@
+<script>
+import Node from 'svelte-plugin-node';
+
+export let tag = 'div';
+export let label = '';
+export let value, min, max, step;
+
+$: min = +min || 0;
+$: max = +max || 100;
+$: step = +step || (max - min) / 10;
+$: value = Math.min(Math.max(+value, min), max) || min;
+
+const onFocus = () => (focus = true);
+const onBlur = () => (focus = false);
+
+export let markers;
+$: if (!discrete) discrete = markers;
+$: displayMarkers = markers;
+$: active = focus;
+
+$: length = (100 * (value - min)) / (max - min);
+$: marks = (max - min) / step;
+</script>
+
+<template lang="pug">
+svelte:options(immutable="{true}")
+
+Node.mdc-slider(bind:tag, bind:node, tabindex="0", role="slider",
+  aria-valuemin!="{min}", aria-valuemax!="{max}", aria-valuenow!="{value}",
+  aria-label!="{label}", aria-disabled!="{disabled}")
+  div.mdc-slider__track-container(style="left:0.75em;right:0.75em;width:auto;")
+    div.mdc-slider__track(style!="{`right:${100 - length}%`}")
+    +if('markers')
+      div.mdc-slider__track-marker-container(
+        style!="{`background:linear-gradient(to right, currentcolor 2px, transparent 0px) 0px center / calc((100% - 0px) / ${marks}) 100% repeat-x`}")
+  div(style="position:relative;margin:0 0.75em;")
+    div.mdc-slider__thumb-container(
+      style!="{`margin-left:-12px;margin-top:-0.5px;left:${length}%;`}")
+      +if('discrete || markers')
+        div.mdc-slider__pin: span.mdc-slider__pin-value-marker {value}
+      svg.mdc-slider__thumb(width="21" height="21"): circle(cx="10.5" cy="10.5" r="7.875")
+      div.mdc-slider__focus-ring
+  div(style="position:absolute;top:33%;left:-0.25em;right:0.1875em;opacity:0.0001;overflow:hidden;z-index:1;")
+    Node(tag='input', type="range", bind:value, "{min}", "{max}", "{step}", "{disabled}",
+      on!="{{ focus: onFocus, blur: onBlur }}",
+      on:focus, on:blur, on:change, on:input,
+      style="width:100%;cursor:pointer;")
+
+
+
+</template>

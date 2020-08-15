@@ -1,0 +1,13 @@
+<script>
+import Node from 'svelte-plugin-node';
+
+export let tag = 'span';
+
+$: deactivating = !active;
+</script>
+
+<template lang="pug">
+svelte:options(immutable="{true}")
+
+Node.mdc-line-ripple(bind:tag, bind:node)
+</template>

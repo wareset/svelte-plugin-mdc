@@ -1,0 +1,24 @@
+<script>
+import Node from 'svelte-plugin-node';
+
+export let tag = 'div';
+
+export let label = 'label';
+export let __for__;
+
+import { onMount } from 'svelte';
+onMount(() => (__for__ = node.querySelector('input').id));
+</script>
+
+<template lang="pug">
+svelte:options(immutable="{true}")
+
+Node.mdc-form-field(bind:tag, bind:node)
+  slot
+  Node(tag="label", for!="{__for__}",
+    style!="{[{'user-select': 'none', 'cursor': 'pointer'}]}")
+    +if('label')
+      |{label}
+      |
+    slot(name="label")
+</template>

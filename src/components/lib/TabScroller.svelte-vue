@@ -1,0 +1,16 @@
+<script>
+import Node from 'svelte-plugin-node';
+
+export let tag = 'div';
+
+export let scroll;
+</script>
+
+<template lang="pug">
+svelte:options(immutable="{true}")
+
+Node.mdc-tab-scroller(bind:tag, bind:node)
+  .mdc-tab-scroller__scroll-area(class:mdc-tab-scroller__scroll-area--scroll!="{scroll}")
+    .mdc-tab-scroller__scroll-content
+      slot
+</template>

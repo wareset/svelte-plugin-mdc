@@ -1,0 +1,90 @@
+<script>
+import Node from 'svelte-plugin-node';
+import { uid } from '../../mdc';
+import MDCIcon from '../MDCIcon';
+import MDCLineRipple from '../lib/MDCLineRipple';
+import MDCFloatingLabel from '../lib/MDCFloatingLabel';
+import MDCNotchedOutline from '../lib/MDCNotchedOutline';
+
+export let tag = 'label';
+
+export let value = '';
+
+export let label = 'label';
+export let type = 'text';
+export let icon = 'menu',
+  iconTrailing = 'menu';
+export let rows, cols;
+// export let prefix = '$', suffix = '.00';
+export let placeholder = 'placeholder';
+export let helper = 'helper';
+export let maxlength = 100;
+export let prefix = '$',
+  suffix = '.00';
+
+$: console.log('TextField', value);
+
+const onFocus = () => (focused = true);
+const onBlur = () => (focused = false);
+
+$: noLabel = !label;
+$: filled = !outlined;
+$: labelFloating = focused || !!value;
+$: withLeadingIcon = icon && !textarea;
+$: withTrailingIcon = iconTrailing && !textarea;
+</script>
+
+<template lang="pug">
+svelte:options(immutable="{true}")
+
+mixin LABEL
+  MDCNotchedOutline("{outlined}", notched!="{labelFloating}")
+    +if('label')
+      MDCFloatingLabel("{label}", "{required}", floatAbove!="{labelFloating}")
+
+mixin HELPER_TEXT
+  //- .mdc-text-field-helper-line
+  +if('helper && labelFloating')
+    .mdc-text-field-helper-text(
+      aria-hidden="true", style="position:absolute;opacity:1;left:1.375em;bottom:0.25em;") {helper}
+
+mixin CHARACTER_COUNTER
+  +if('maxlength && focused')
+    .mdc-text-field-character-counter(
+      style="position:absolute;right:0.375em;top:0.125em;") {value.length} / {maxlength}
+
+Node.mdc-text-field(bind:tag, bind:node)
+  +if('!outlined')
+    span.mdc-text-field__ripple
+
+  +if('withLeadingIcon')
+    MDCIcon.mdc-text-field__icon.mdc-text-field__icon--leading(aria-hidden="true") {icon}
+
+  +LABEL
+
+  +if('textarea')
+    span.mdc-text-field__resizer
+      Node.mdc-text-field__input(tag="textarea", bind:value,
+        on!="{{ focus: onFocus, blur: onBlur }}", aria-label!="{label}",
+        on:focus, on:blur, on:change, on:input, "{rows}", "{cols}",
+        "{placeholder}", "{required}", "{disabled}", "{maxlength}")
+    +else
+      +if('prefix')
+        span.mdc-text-field__affix.mdc-text-field__affix--prefix {prefix}
+      Node.mdc-text-field__input(tag="input", bind:value,
+        on!="{{ focus: onFocus, blur: onBlur }}", aria-label!="{label}",
+        on:focus, on:blur, on:change, on:input, "{type}",
+        "{placeholder}", "{required}", "{disabled}", "{maxlength}")
+      +if('suffix')
+        span.mdc-text-field__affix.mdc-text-field__affix--suffix {suffix}
+
+  +CHARACTER_COUNTER
+  +HELPER_TEXT
+
+  +if('withTrailingIcon')
+    MDCIcon.mdc-text-field__icon.mdc-text-field__icon--trailing(aria-hidden="true") {icon}
+
+  +if('!outlined')
+    MDCLineRipple(active!="{focused}")
+
+</template>

@@ -1,0 +1,30 @@
+<script>
+import Node from 'svelte-plugin-node';
+
+import MDCIcon from '../MDCIcon';
+
+export let tag = 'header';
+
+export let menu = 'menu';
+export let title = 'svelte-plugin-mdc';
+</script>
+
+<template lang="pug">
+svelte:options(immutable="{true}")
+
+Node.mdc-top-app-bar(bind:tag, bind:node)
+  section.mdc-top-app-bar__section.mdc-top-app-bar__section--align-start
+    slot(name="align-start")
+      slot(name="menu")
+        MDCIcon.mdc-top-app-bar__navigation-icon(tag="button") {menu}
+      slot(name="title")
+        +if('title')
+          span.mdc-top-app-bar__title {title}
+
+  section.mdc-top-app-bar__section.mdc-top-app-bar__section--align-center
+    slot(name="align-center")
+
+  section.mdc-top-app-bar__section.mdc-top-app-bar__section--align-end(role="toolbar")
+    slot(name="align-end")
+      //- button.material-icons.mdc-top-app-bar__action-item.mdc-icon-button(aria-label="Bookmark this page") bookmark
+</template>

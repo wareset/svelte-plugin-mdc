@@ -1,0 +1,36 @@
+<script>
+import Node from 'svelte-plugin-node';
+import MDCIcon from '../MDCIcon';
+
+export let tag = 'button';
+
+export let icon, img, svg, iconTrailing, imgTrailing, svgTrailing;
+export let label = '';
+
+export let type = 'button';
+
+const onClick = () => (checked = !checked);
+</script>
+
+<template lang="pug">
+svelte:options(immutable="{true}")
+
+Node.mdc-icon-button(bind:tag, bind:node, "{type}", on:click!="{onClick}",
+  aria-label!="{label}", aria-pressed!="{checked}", title!="{label}")
+  span
+
+  +if('!checked || (checked && !iconTrailing && !imgTrailing && !svgTrailing)')
+    +if('icon')
+      MDCIcon.mdc-icon-button__icon {icon}
+      +elseif('img')
+        img.mdc-icon-button__icon(src="{img}", alt="{label}")
+        +elseif('svg') {@html svg}
+
+  +if('checked')
+    +if('iconTrailing')
+      MDCIcon.mdc-icon-button__icon {iconTrailing}
+      +elseif('imgTrailing')
+        img.mdc-icon-button__icon(src="{imgTrailing}", alt="{label}")
+        +elseif('svgTrailing') {@html svgTrailing}
+
+</template>

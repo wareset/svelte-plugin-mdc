@@ -1,0 +1,82 @@
+<script context="module">
+import { writable } from 'svelte/store';
+const SNACKBARS$ = writable([]);
+
+function move_node(node) {
+  if (typeof window === 'undefined') return;
+  if (!node || node.parentElement === document.body) return;
+  document.body.append(node);
+}
+</script>
+
+<script>
+import Node from 'svelte-plugin-node';
+import MDCButton from '../MDCButton';
+import MDCIconButton from '../MDCIconButton';
+const ACTION_TYPES = { button: MDCButton, icon: MDCIconButton };
+
+export let tag = 'div';
+
+export let label = 'label';
+export let timeout = 0;
+$: timeout = +timeout || 0;
+$: if (timeout < 100) timeout *= 1000;
+
+$: opening = !open;
+$: setTimeout(() => (closing = !opening), 250);
+let sto;
+$: if (open && timeout) {
+  clearTimeout(sto);
+  sto = setTimeout(() => (open = false), timeout);
+}
+
+function mounting(node, open) {
+  move_node(node);
+  $SNACKBARS$ = [...$SNACKBARS$, node].filter(v => {
+    if (!v || v.parentElement !== document.body) return false;
+    if (v === node) return !!open;
+    return true;
+  });
+}
+$: mounting(node, open);
+
+const defaultClick = e => console.log('Snackbar click', e);
+export let actions = [
+  { type: 'icon', icon: 'close', label: 'close', click: defaultClick },
+  { type: 'button', icon: 'close', label: 'close', click: defaultClick }
+];
+
+import { onMount } from 'svelte';
+
+onMount(() => {
+  const snacks$$ = SNACKBARS$.subscribe(v => {
+    if (!node) return;
+    let bottom = 0;
+    v.some(v => {
+      if (v === node) return true;
+      const { height } = v.getBoundingClientRect();
+      bottom += height + 15;
+    });
+    console.log(12, bottom);
+    node.style.bottom = `${bottom}px`;
+  });
+  return () => snacks$$();
+});
+</script>
+
+<template lang="pug">
+svelte:options(immutable="{true}")
+
+Node.mdc-snackbar(bind:tag, bind:node)
+  .mdc-snackbar__surface
+    +if('label')
+      .mdc-snackbar__label(role="status", aria-live="polite") {label}
+
+    +if('actions.length')
+      .mdc-snackbar__actions
+        +each('actions as action')
+          +if('action.type in ACTION_TYPES')
+            svelte:component.mdc-snackbar__action(
+              "{...action}", this!="{ACTION_TYPES[action.type]}",
+              on:click!="{action.click || defaultClick}")
+</template>

@@ -1,0 +1,29 @@
+<script>
+import Node from 'svelte-plugin-node';
+import MDCIcon from '../MDCIcon';
+
+export let tag = 'button';
+export let icon, label, iconTrailing;
+
+export let type = 'button';
+</script>
+
+<template lang="pug">
+svelte:options(immutable="{true}")
+
+Node.mdc-button(bind:tag, bind:node, "{type}", class!="mdc-ripple")
+  .mdc-button__ripple
+  span
+  +if('icon')
+    MDCIcon.mdc-button__icon(aria-hidden="true") {icon}
+  span.mdc-button__label
+    +if('label')
+      |{label}
+      |
+    slot
+  +if('iconTrailing')
+    MDCIcon.mdc-button__icon(aria-hidden="true") {iconTrailing}
+
+  +if('touch')
+    .mdc-button__touch
+</template>

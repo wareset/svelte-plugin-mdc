@@ -1,0 +1,19 @@
+<script>
+import Node from 'svelte-plugin-node';
+import { uid } from '../../mdc';
+
+export let tag = 'div';
+export let id = 'mdc-radio-' + uid();
+export let value = id;
+</script>
+
+<template lang="pug">
+svelte:options(immutable="{true}")
+
+Node.mdc-radio(bind:tag, bind:node)
+  Node.mdc-radio__native-control(tag="input", type="radio", bind:id, bind:value, bind:group, bind:checked, bind:indeterminate, on:focus, on:blur, on:change, on:input, "{disabled}", "{required}")
+  div.mdc-radio__background
+    div.mdc-radio__outer-circle
+    div.mdc-radio__inner-circle
+  div.mdc-radio__ripple
+</template>

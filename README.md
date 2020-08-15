@@ -1,5 +1,3 @@
-# svelte-use-material
+# svelte-plugin-mdc
 
-Material-components and use-function for svelte
-
-# In progress. Please not use this.
+# in progress

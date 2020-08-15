@@ -1,0 +1,44 @@
+<script>
+import Node from 'svelte-plugin-node';
+import MDCTabScroller from '../lib/MDCTabScroller';
+
+export let tag = 'div';
+
+// FOR MDCTabScroller
+export let animating, scroll;
+
+let is_mount = false;
+import { onMount, setContext } from 'svelte';
+import { writable } from 'svelte/store';
+
+export let active = null;
+export let stacked = false;
+const id$ = writable();
+const tabs$ = writable([]);
+const stacked$ = writable(stacked);
+$: $stacked$ = stacked;
+
+const change_tabs$ = tabs => {
+  if (!is_mount) return;
+  if (!tabs.length) {
+    if (typeof active === 'number') active = null;
+    if ($id$) $id$ = null;
+  } else {
+    if (!$id$) $id$ = tabs[Math.min(Math.max(active || 0, 0), tabs.length - 1)];
+    if (tabs.indexOf($id$) < 0) $id$ = tabs[0];
+    if (typeof active !== 'number') active = tabs.indexOf($id$);
+  }
+};
+$: change_tabs$($tabs$);
+
+setContext('MDCTabBar', { id$, tabs$, stacked$ });
+onMount(() => (is_mount = true));
+</script>
+
+<template lang="pug">
+svelte:options(immutable="{true}")
+
+Node.mdc-tab-bar(bind:tag, bind:node, role="tablist")
+  MDCTabScroller("{animating}", "{scroll}")
+    slot
+</template>

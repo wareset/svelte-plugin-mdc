@@ -1,0 +1,38 @@
+<script context="module">
+export const LIST_ROLES = ['listbox', 'radiogroup', 'group', 'menu'];
+</script>
+
+<script>
+import Node from 'svelte-plugin-node';
+
+export let tag = 'ul';
+export let role = LIST_ROLES[0]; // radiogroup, group
+$: if (LIST_ROLES.indexOf(role) < 0) role = LIST_ROLES[0];
+export let multiple = false;
+
+import { onMount, setContext } from 'svelte';
+import { writable } from 'svelte/store';
+const listTag$ = writable(tag);
+$: $listTag$ = tag;
+const listRole$ = writable(role);
+$: $listRole$ = role;
+const listGroup$ = writable(group);
+$: if ($listGroup$ !== group) $listGroup$ = group;
+const listMultiple$ = writable(multiple);
+$: if ($listMultiple$ !== multiple) $listMultiple$ = multiple;
+
+setContext('MDCList', { listTag$, listRole$, listGroup$, listMultiple$ });
+
+onMount(() => {
+  const group$$ = listGroup$.subscribe(v => group !== v && (group = v)),
+    multiple$$ = listMultiple$.subscribe(v => multiple !== v && (multiple = v));
+  return () => group$$(), multiple$$();
+});
+</script>
+
+<template lang="pug">
+svelte:options(immutable="{true}")
+
+Node.mdc-list(bind:tag, bind:node, "{role}")
+  slot
+</template>

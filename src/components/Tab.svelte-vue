@@ -1,0 +1,61 @@
+<script>
+import Node from 'svelte-plugin-node';
+import { uid } from '../../mdc';
+import MDCIcon from '../MDCIcon';
+import MDCTabIndicator from '../lib/MDCTabIndicator';
+
+export let tag = 'button';
+export let id = 'mdc-tab-' + uid();
+export let label = 'label';
+export let icon;
+
+// FOR MDCTabIndicator
+export let overline = false;
+export let underline = true;
+export let shortline = false;
+export let noTransition = false;
+
+import { getContext, onDestroy } from 'svelte';
+const { id$, tabs$, stacked$ } = getContext('MDCTabBar');
+if (active) $id$ = id;
+
+$: stacked = $stacked$;
+$: if (node && id) $tabs$ = [...node.parentElement.children].map(v => v.id);
+
+function click(e) {
+  if (!active || $id$ !== id) (active = true), ($id$ = id);
+}
+$: if (node && id && active) click();
+$: active = $id$ === id;
+
+onDestroy(() => {
+  if ($id$ === id) $id$ = $tabs$[Math.max(0, $tabs$.indexOf(id) - 1)];
+  $tabs$ = $tabs$.filter(v => v !== id);
+});
+</script>
+
+<template lang="pug">
+svelte:options(immutable="{true}")
+
+mixin INDICATOR
+  MDCTabIndicator("{active}", "{noTransition}",
+    underline!="{underline || overline}", icon!="{overline}")
+
+Node.mdc-tab(bind:id, bind:tag, bind:node, role="tab", on:click!="{click}",
+ aria-selected!="{active}", tabIndex!="{active ? '0' : '-1'}")
+  span.mdc-tab__content
+    +if('icon')
+      MDCIcon.mdc-tab__icon {icon}
+    span.mdc-tab__text-label
+      +if('label')
+        |{label}
+        |
+      slot
+
+    +if('shortline')
+      +INDICATOR
+  +if('!shortline')
+    +INDICATOR
+
+  span.mdc-tab__ripple
+</template>

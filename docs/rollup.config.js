@@ -8,6 +8,7 @@ import config from 'sapper/config/rollup.js';
 import pkg from './package.json';
 
 import preprocess from 'svelte-preprocess';
+import sveltePluginNode from 'svelte-plugin-node';
 
 const mode = process.env.NODE_ENV;
 const dev = mode === 'development';
@@ -31,7 +32,16 @@ export default {
         dev,
         hydratable: true,
         emitCss: true,
-        preprocess: preprocess(),
+        immutable: true,
+        preprocess: [
+          preprocess(),
+          sveltePluginNode({
+            dev,
+            hydratable: true,
+            emitCss: true,
+            immutable: true,
+          }),
+        ],
       }),
       resolve({
         browser: true,
@@ -84,7 +94,11 @@ export default {
       svelte({
         generate: 'ssr',
         dev,
-        preprocess: preprocess(),
+        immutable: true,
+        preprocess: [
+          preprocess(),
+          sveltePluginNode({ generate: 'ssr', dev, immutable: true }),
+        ],
       }),
       resolve({
         dedupe: ['svelte'],

@@ -1,26 +1,43 @@
 {
-  "name": "svelte-use-material",
+  "name": "svelte-plugin-mdc",
   "version": "0.0.1",
   "description": "Material-components and use-function for svelte",
-  "main": "index.js",
-  "repository": "https://github.com/wareset/svelte-use-material.git",
+  "main": "dist/mdc/index.js",
+  "repository": "https://github.com/wareset/svelte-plugin-mdc.git",
   "author": "wareset <git@wareset.com>",
   "license": "MIT",
   "files": [
-    "index.js",
-    "lib",
-    "components",
+    "dist",
     "LICENSE",
     "README.md"
   ],
   "dependencies": {
+    "@wareset/unique": "^1.0.2",
     "kebab-case": "^1.0.0",
     "material-components-web": "^7.0.0"
   },
   "peerDependencies": {
-    "svelte": "^3.24.0"
+    "svelte": "^3.24.1"
   },
   "scripts": {
-    "deploy:site": "git push origin `git subtree split --prefix docs/__sapper__/export/svelte-use-material master`:gh-pages --force"
+    "build": "node ./scripts/build.js",
+    "dev": "node ./scripts/dev.js",
+    "docs:dev": "npm run dev --prefix docs",
+    "docs:export": "npm run export --prefix docs",
+    "docs:deploy": "npm run docs:export && node ./scripts/gh-pages.js"
+  },
+  "devDependencies": {
+    "chokidar": "^3.4.2",
+    "css": "^3.0.0",
+    "fs-extra": "^9.0.1",
+    "gh-pages": "^3.1.0",
+    "less": "^3.12.2",
+    "magic-string": "^0.25.7",
+    "node-sass": "^4.14.1",
+    "postcss": "^7.0.32",
+    "pug": "^3.0.0",
+    "sass": "^1.26.10",
+    "svelte-plugin-node": "^0.0.1",
+    "svelte-preprocess": "^4.0.11"
   }
 }

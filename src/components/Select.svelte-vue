@@ -1,0 +1,75 @@
+<script>
+import Node from 'svelte-plugin-node';
+import MDCMenuSurface from '../MDCMenuSurface';
+import MDCList from '../MDCList';
+import MDCIcon from '../MDCIcon';
+import MDCLineRipple from '../lib/MDCLineRipple';
+import MDCFloatingLabel from '../lib/MDCFloatingLabel';
+import MDCNotchedOutline from '../lib/MDCNotchedOutline';
+
+let listEl, inputEl;
+export let tag = 'div';
+export let icon = '';
+export let label = 'label';
+export let multiple = false;
+export let value = '';
+if (value && !group) group = value.split(/\s*\,\s*/g);
+$: value = Array.isArray(group) ? group.join(', ') : '';
+$: if (node) node.style.maxWidth = '100%';
+
+const onFocus = () => {
+  // console.log('onFocus');
+  focused = true;
+};
+const onBlur = e => {
+  // console.log('onBlur', e);
+  if (multiple && listEl.contains(e.relatedTarget)) inputEl.focus();
+  else setTimeout(() => (focused = false), 125);
+};
+
+$: console.log('MDCSelect', group);
+
+$: noLabel = !label;
+$: filled = !outlined;
+$: labelFloating = !!value;
+$: withLeadingIcon = icon;
+</script>
+
+<template lang="pug">
+svelte:options(immutable="{true}")
+
+mixin LABEL
+  MDCNotchedOutline("{outlined}", notched!="{labelFloating}")
+    MDCFloatingLabel("{label}", "{required}", floatAbove!="{labelFloating}")
+
+Node.mdc-select(bind:tag, bind:node)
+  .mdc-select__anchor(role="button", aria-haspopup="listbox", aria-expanded!="{focused}",
+    aria-required!="{required}", aria-disabled!="{disabled}")
+    +if('!outlined')
+      span.mdc-select__ripple
+
+    +if('withLeadingIcon')
+      MDCIcon.mdc-text-field__icon.mdc-text-field__icon--leading(aria-hidden="true") {icon}
+
+    +LABEL
+
+    span.mdc-select__selected-text {value}
+    span.mdc-select__dropdown-icon
+      svg.mdc-select__dropdown-icon-graphic(viewBox="7 10 10 5" focusable="false")
+        polygon.mdc-select__dropdown-icon-inactive(stroke="none",
+          fill-rule="evenodd", points="7 10 12 15 17 10")
+        polygon.mdc-select__dropdown-icon-active(stroke="none",
+          fill-rule="evenodd", points="7 15 12 10 17 15")
+
+    +if('!outlined')
+      MDCLineRipple(active!="{focused}")
+
+    Node(tag="input", type="select", on!="{{ focus: onFocus, blur: onBlur }}",
+      "{required}", "{disabled}", "{multiple}",
+      on:focus, on:blur, on:change, on:input, bind:node!="{inputEl}"
+      style!="{`display:block; position:absolute; width:100%;height:100%; opacity:0.0001; cursor:pointer; z-index:${!focused ? 1 : 0};`}")
+
+  MDCMenuSurface.mdc-select__menu2(open!="{focused}", fullwidth)
+    MDCList(bind:group, bind:multiple, role="listbox", bind:node!="{listEl}")
+      slot
+</template>

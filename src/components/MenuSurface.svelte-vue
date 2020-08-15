@@ -1,0 +1,20 @@
+<script>
+import Node from 'svelte-plugin-node';
+
+export let tag = 'div';
+
+export let animating = false;
+export let animating_open = true;
+export let animating_closed = false;
+$: if (animating || animating_open) animatingOpen = !open;
+$: if (animating || animating_closed) animatingClosed = !open;
+
+$: if (node) node.style.zIndex = open ? null : 0;
+</script>
+
+<template lang="pug">
+svelte:options(immutable="{true}")
+
+Node.mdc-menu-surface.mdc-menu2(bind:tag, bind:node)
+  slot
+</template>

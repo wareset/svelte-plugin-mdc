@@ -1,0 +1,15 @@
+<script>
+import Node from 'svelte-plugin-node';
+
+export let tag = 'i';
+export let icon;
+</script>
+
+<template lang="pug">
+svelte:options(immutable="{true}")
+
+Node.mdc-icon.material-icons(bind:tag, bind:node)
+  +if('icon') {icon}
+    +else
+      slot
+</template>
