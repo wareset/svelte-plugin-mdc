@@ -1,0 +1,38 @@
+<script>
+import Node from 'svelte-plugin-node';
+
+export let tag = 'li';
+export let label = 'label';
+export let src;
+
+import { getContext } from 'svelte';
+const { masonry$, columnRatio$, columnCount$, columnGap$ } = getContext(
+  'MDCImageList'
+);
+</script>
+
+<template lang="pug">
+svelte:options(immutable="{true}")
+
+mixin IMG
+  +if('src')
+    img.mdc-image-list__image("{src}", alt!="{label}")
+
+mixin LABEL
+  +if('label')
+    .mdc-image-list__supporting: span.mdc-image-list__label
+      |{label}
+      |
+    slot
+
+Node.mdc-image-list__item(bind:tag, bind:node,
+  style!="{$masonry$ ? { marginBottom: $columnGap$ } : { width: `calc(100% / ${$columnCount$} - 1px - ${$columnGap$})`, margin: `calc(${$columnGap$} / 2)` }}")
+  +if('!$masonry$')
+    .mdc-image-list__image-aspect-container(
+      style!="{`padding-bottom: ${100/$columnRatio$}%`}")
+      +IMG
+    +else
+      +IMG
+  +LABEL
+
+</template>

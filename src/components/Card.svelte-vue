@@ -1,7 +1,29 @@
 <script>
 import Node from 'svelte-plugin-node';
+import MDCButton from '../MDCButton';
+import MDCIconButton from '../MDCIconButton';
+const ACTION_TYPES = { button: MDCButton, icon: MDCIconButton };
+
+$: console.log(component, $$props);
 
 export let tag = 'div';
+
+// FOR MEDIA
+export let rect, square;
+// FOR ACTIONS
+export let fullBleed
+
+const defaultClick = e => console.log('Card click', e);
+export let actions = [
+  { type: 'icon', icon: 'close', label: 'close', click: defaultClick },
+  { type: 'button', icon: 'close', label: 'close', click: defaultClick }
+];
+export let actionsTrailing = [
+  { type: 'icon', icon: 'close', label: 'close', click: defaultClick },
+  { type: 'button', icon: 'close', label: 'close', click: defaultClick }
+];
+
+// let slot
 </script>
 
 <template lang="pug">
@@ -9,4 +31,26 @@ svelte:options(immutable="{true}")
 
 Node.mdc-card(bind:tag, bind:node)
   slot
+    .mdc-card__primary-action(tabindex="0")
+      slot(name="primary")
+
+  +if('actions.length || actionsTrailing.length')
+    .mdc-card__actions(class:mdc-card__actions--full-bleed!="{fullBleed}")
+      +if('actions.length')
+        .mdc-card__action-buttons
+          +each('actions as action')
+            +if('action.type in ACTION_TYPES')
+              svelte:component.mdc-card__action(
+                class!="{`mdc-card__action--${action.type}`}"
+                "{...action}", this!="{ACTION_TYPES[action.type]}",
+                on:click!="{action.click || defaultClick}")
+
+      +if('actionsTrailing.length')
+        .mdc-card__action-icons
+          +each('actionsTrailing as action')
+            +if('action.type in ACTION_TYPES')
+              svelte:component.mdc-card__action(
+                class!="{`mdc-card__action--${action.type}`}"
+                "{...action}", this!="{ACTION_TYPES[action.type]}",
+                on:click!="{action.click || defaultClick}")
 </template>

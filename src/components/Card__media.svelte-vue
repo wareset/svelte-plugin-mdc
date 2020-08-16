@@ -2,11 +2,14 @@
 import Node from 'svelte-plugin-node';
 
 export let tag = 'div';
+export let rect = n169;
+$: n169 = rect;
 </script>
 
 <template lang="pug">
 svelte:options(immutable="{true}")
 
-Node.mdc-layout-grid__cell(bind:tag, bind:node)
-  slot
+Node.mdc-card__media(bind:tag, bind:node)
+  .mdc-card__media-content
+    slot
 </template>

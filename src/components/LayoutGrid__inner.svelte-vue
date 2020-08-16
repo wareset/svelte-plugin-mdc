@@ -1,0 +1,22 @@
+<script>
+import Node from 'svelte-plugin-node';
+
+export let tag = 'div';
+
+import { setContext, getContext } from 'svelte';
+import { writable } from 'svelte/store';
+
+const self$ = getContext('MDCLayoutGrid');
+const that$ = writable('inner');
+setContext('MDCLayoutGrid', that$);
+</script>
+
+<template lang="pug">
+svelte:options(immutable="{true}")
+
++if('$self$ === `inner`')
+  slot
+  +else
+    Node.mdc-layout-grid__inner(bind:tag, bind:node)
+      slot
+</template>

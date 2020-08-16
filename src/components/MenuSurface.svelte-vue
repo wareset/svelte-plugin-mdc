@@ -3,11 +3,43 @@ import Node from 'svelte-plugin-node';
 
 export let tag = 'div';
 
-export let animating = false;
-export let animating_open = true;
-export let animating_closed = false;
-$: if (animating || animating_open) animatingOpen = !open;
-$: if (animating || animating_closed) animatingClosed = !open;
+export let timeout = 0;
+$: timeout = +timeout || 0;
+$: if (timeout < 100) timeout *= 1000;
+
+export let hiding = true;
+export let opened = false;
+let sto;
+$: if (opened && timeout) {
+  clearTimeout(sto);
+  sto = setTimeout(() => (opened = false), timeout);
+}
+
+$: open = opened;
+
+// import { tick } from 'svelte';
+// async function preopen(opened) {
+//   (animatingOpen = false), (animatingClosed = false);
+//   await tick();
+//   if (opened) {
+//     (animatingOpen = false), (animatingClosed = true);
+//     await tick();
+//     setTimeout(() => (open = true));
+//     setTimeout(() => (animatingOpen = false), 1000);
+//   } else {
+//     (animatingOpen = true), (animatingClosed = false);
+//     await tick();
+//     setTimeout(() => (open = false));
+//     setTimeout(() => (animatingClosed = false), 1000);
+//   }
+// }
+// $: preopen(opened);
+
+// export let animating = false;
+// export let animating_open = true;
+// export let animating_closed = false;
+// $: if (animating || animating_open) animatingOpen = !open;
+// $: if (animating || animating_closed) animatingClosed = !open;
 
 $: if (node) node.style.zIndex = open ? null : 0;
 </script>
@@ -15,6 +47,7 @@ $: if (node) node.style.zIndex = open ? null : 0;
 <template lang="pug">
 svelte:options(immutable="{true}")
 
-Node.mdc-menu-surface.mdc-menu2(bind:tag, bind:node)
-  slot
++if('!hiding || animatingOpen || open || animatingClosed')
+  Node.mdc-menu-surface.mdc-menu2(bind:tag, bind:node)
+    slot
 </template>

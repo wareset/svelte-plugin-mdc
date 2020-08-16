@@ -12,8 +12,8 @@ export let value = '';
 
 export let label = 'label';
 export let type = 'text';
-export let icon = 'menu',
-  iconTrailing = 'menu';
+export let icon = '',
+  iconTrailing = '';
 export let rows, cols;
 // export let prefix = '$', suffix = '.00';
 export let placeholder = 'placeholder';
@@ -29,9 +29,9 @@ const onBlur = () => (focused = false);
 
 $: noLabel = !label;
 $: filled = !outlined;
-$: labelFloating = focused || !!value;
-$: withLeadingIcon = icon && !textarea;
-$: withTrailingIcon = iconTrailing && !textarea;
+$: labelFloating = !!focused || !!value;
+$: withLeadingIcon = !!icon && !textarea;
+$: withTrailingIcon = !!iconTrailing && !textarea;
 </script>
 
 <template lang="pug">

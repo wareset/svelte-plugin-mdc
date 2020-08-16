@@ -2,11 +2,23 @@
 import Node from 'svelte-plugin-node';
 
 export let tag = 'div';
+
+import { onMount, setContext } from 'svelte';
+import { writable } from 'svelte/store';
+const listGroup$ = writable(group);
+$: if ($listGroup$ !== group) $listGroup$ = group;
+
+setContext('MDCChipSet', { listGroup$ });
+
+onMount(() => {
+  const group$$ = listGroup$.subscribe(v => group !== v && (group = v));
+  return () => group$$();
+});
 </script>
 
 <template lang="pug">
 svelte:options(immutable="{true}")
 
-Node.mdc-chip-set(bind:tag, bind:node)
+Node.mdc-chip-set(bind:tag, bind:node, role="grid")
   slot
 </template>

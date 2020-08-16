@@ -30,7 +30,7 @@ async function BUILD_COMPONENT(file) {
   const code = (
     await svelte.preprocess(
       content,
-      [preprocess, preprocess_add_modifiers(filename), pluginNode],
+      [preprocess, preprocess_add_modifiers(file), pluginNode],
       {
         file
       }

@@ -2,11 +2,17 @@
 import Node from 'svelte-plugin-node';
 
 export let tag = 'div';
+export let label;
 </script>
 
 <template lang="pug">
 svelte:options(immutable="{true}")
 
 Node.mdc-data-table(bind:tag, bind:node)
-  slot
+  .mdc-data-table__table-container
+    table.mdc-data-table__table(aria-label!="{label}")
+      thead
+        slot(name="thead")
+      tbody.mdc-data-table__content
+        slot
 </template>

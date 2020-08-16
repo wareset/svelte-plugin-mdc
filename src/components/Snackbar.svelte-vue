@@ -1,4 +1,9 @@
 <script context="module">
+import Node from 'svelte-plugin-node';
+import MDCButton from '../MDCButton';
+import MDCIconButton from '../MDCIconButton';
+const ACTION_TYPES = { button: MDCButton, icon: MDCIconButton };
+
 import { writable } from 'svelte/store';
 const SNACKBARS$ = writable([]);
 
@@ -10,11 +15,6 @@ function move_node(node) {
 </script>
 
 <script>
-import Node from 'svelte-plugin-node';
-import MDCButton from '../MDCButton';
-import MDCIconButton from '../MDCIconButton';
-const ACTION_TYPES = { button: MDCButton, icon: MDCIconButton };
-
 export let tag = 'div';
 
 export let label = 'label';
@@ -22,17 +22,35 @@ export let timeout = 0;
 $: timeout = +timeout || 0;
 $: if (timeout < 100) timeout *= 1000;
 
-$: opening = !open;
-$: setTimeout(() => (closing = !opening), 250);
+export let hiding = true;
+export let opened = false;
 let sto;
-$: if (open && timeout) {
+$: if (opened && timeout) {
   clearTimeout(sto);
-  sto = setTimeout(() => (open = false), timeout);
+  sto = setTimeout(() => (opened = false), timeout);
 }
+
+import { tick } from 'svelte';
+async function preopen(opened) {
+  (opening = false), (closing = false);
+  await tick();
+  if (opened) {
+    (opening = true), (closing = false);
+    await tick();
+    setTimeout(() => (open = true));
+    setTimeout(() => (opening = false), 1000);
+  } else {
+    (opening = false), (closing = true);
+    await tick();
+    setTimeout(() => (open = false));
+    setTimeout(() => (closing = false), 1000);
+  }
+}
+$: preopen(opened);
 
 function mounting(node, open) {
   move_node(node);
-  $SNACKBARS$ = [...$SNACKBARS$, node].filter(v => {
+  $SNACKBARS$ = [node, ...$SNACKBARS$].filter(v => {
     if (!v || v.parentElement !== document.body) return false;
     if (v === node) return !!open;
     return true;
@@ -67,16 +85,17 @@ onMount(() => {
 <template lang="pug">
 svelte:options(immutable="{true}")
 
-Node.mdc-snackbar(bind:tag, bind:node)
-  .mdc-snackbar__surface
-    +if('label')
-      .mdc-snackbar__label(role="status", aria-live="polite") {label}
++if('!hiding || opening || open || closing')
+  Node.mdc-snackbar(bind:tag, bind:node)
+    .mdc-snackbar__surface
+      +if('label')
+        .mdc-snackbar__label(role="status", aria-live="polite") {label}
 
-    +if('actions.length')
-      .mdc-snackbar__actions
-        +each('actions as action')
-          +if('action.type in ACTION_TYPES')
-            svelte:component.mdc-snackbar__action(
-              "{...action}", this!="{ACTION_TYPES[action.type]}",
-              on:click!="{action.click || defaultClick}")
+      +if('actions.length')
+        .mdc-snackbar__actions
+          +each('actions as action')
+            +if('action.type in ACTION_TYPES')
+              svelte:component.mdc-snackbar__action(
+                "{...action}", this!="{ACTION_TYPES[action.type]}",
+                on:click!="{action.click || defaultClick}")
 </template>

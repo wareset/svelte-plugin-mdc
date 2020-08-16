@@ -4,7 +4,7 @@ import Node from 'svelte-plugin-node';
 export let tag = 'span';
 export let outlined;
 
-$: upgraded = !notched;
+// $: upgraded = !notched;
 </script>
 
 <template lang="pug">

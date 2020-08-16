@@ -1,4 +1,12 @@
+const {
+  addScriptTag,
+  scriptIndexStart,
+  parseHtml,
+  trimQuotes
+} = require('svelte-plugin-node/scripts/lib/parse_utilites');
 const svelte = require('svelte/compiler');
+const { relative, resolve, parse } = require('path');
+
 const MagicString = require('magic-string');
 const get_css_modifiers = require('./get_css_modifiers');
 const kebabCase = require('kebab-case');
@@ -6,24 +14,121 @@ const unique = require('@wareset/unique');
 
 const CACHE = {};
 
-function walker(content, filename) {}
+function toModifier(v) {
+  let res = kebabCase.reverse(v).replace(/\W+/g, '');
+  if (res[0] === `${+res[0]}`) res = `n${res}`;
+  return res;
+}
 
-module.exports = function preprocess_add_modifiers(filename) {
+function set_class_from_node(content, v) {
+  const inject = trimQuotes(content.slice(v.start + 6, v.end));
+  // inject = inject[0] === '{' ? inject.slice(1, -1) : JSON.stringify(inject);
+  return JSON.stringify(inject);
+}
+
+function set_style_from_node(content, v) {
+  let inject = trimQuotes(content.slice(v.start + 6, v.end));
+  inject = inject[0] === '{' ? inject.slice(1, -1) : JSON.stringify(inject);
+  return inject;
+}
+
+function walker(content, modifiers) {
+  let NODE;
+
+  svelte.walk(parseHtml(content), {
+    enter(node, parent, prop /*, index*/) {
+      if (NODE) {
+        this.skip();
+        return;
+      }
+      if (prop !== 'attributes') return;
+      if (node.name !== 'class') return;
+      if (!Array.isArray(node.value)) return;
+      // console.log(prop, node);
+
+      node.value.some(v => {
+        v = v.data || v.raw;
+        if (v && ~v.split(/\s+/g).indexOf(modifiers.className)) NODE = parent;
+        return !!NODE;
+      });
+    }
+  });
+
+  if (!NODE) return content;
+  const magic = new MagicString(content);
+
+  let inject;
+  NODE.attributes.forEach(v => {
+    // console.log(v);
+    if (v.name === 'class') {
+      inject = set_class_from_node(content, v);
+      inject =
+        inject.slice(0, -1) +
+        ` {__CLASS__} {__CLASSES__(${JSON.stringify(
+          modifiers.className
+        )}, { ${modifiers.modifiers
+          .map(v => {
+            const prop = toModifier(v);
+            if (v === prop) return prop;
+            return JSON.stringify(v) + ': ' + prop;
+          })
+          .join(', ')} })}` +
+        inject.slice(-1);
+      inject = ` class=${inject} on={component}`;
+      if (!NODE.attributes.some(v => v.name === 'style')) {
+        inject += ` style={__STYLE__}`;
+      }
+      // modifiers.modifiers.forEach(v => {
+      //   inject += ` class:${modifiers.className}--${v}={${toModifier(v)}}`;
+      // });
+      magic.overwrite(v.start, v.end, inject);
+    }
+    if (v.name === 'style') {
+      inject = set_style_from_node(content, v);
+      inject = `style={[${inject}, __STYLE__]}`;
+      // console.log(styles);
+      magic.overwrite(v.start, v.end, inject);
+    }
+  });
+
+  return magic.toString();
+}
+
+function inject_for_touch(modifiers) {
+  if (!modifiers.modifiers.some(v => v === 'touch')) return '';
+  return `
+function __CHECK_TOUCH__(node) {
+  touch = false;
+  if (!node || !node.parentElement) return;
+  if (node.parentElement.classList.contains('mdc-touch-target-wrapper')) {
+    touch = true;
+  }
+}
+$: __CHECK_TOUCH__(node);
+  `;
+}
+
+module.exports = function preprocess_add_modifiers(file) {
+  console.log(parse(file));
+
+  const { base, dir } = parse(file);
+  const deep = relative(dir, resolve(__dirname, '../..'));
+
+  // console.log(9999, dir, deep);
+
   let modifiers;
-  if (filename in CACHE) {
-    modifiers = CACHE[filename];
+  if (file in CACHE) {
+    modifiers = CACHE[file];
   } else {
-    modifiers = get_css_modifiers(filename);
-    CACHE[filename] = modifiers;
+    modifiers = get_css_modifiers(base);
+    CACHE[file] = modifiers;
   }
 
-  if (!modifiers) return {};
+  console.log(file, modifiers);
 
-  console.log(modifiers);
+  if (!modifiers) throw new Error('ERROR PRE');
 
-  const regexp = new RegExp(
-    `class\\=[\`'"][^]*?${modifiers.className}[\`'"\\s]`
-  );
+  // console.log(modifiers);
 
   const default_mods = unique([
     'node',
@@ -36,17 +141,14 @@ module.exports = function preprocess_add_modifiers(filename) {
   ]);
 
   return {
-    markup: ({ content, filename }) => {
+    markup: ({ content }) => {
+      content = addScriptTag(content);
+      // return;
       const magic = new MagicString(content);
-
-      walker(content, filename);
-
-      let scriptStart = content
-        .match(/\<script[^]*?\>/g)
-        .filter(v => !v.match(/context/i))[0];
-      scriptStart = content.indexOf(scriptStart) + scriptStart.length;
-
-      let e1 = `
+      magic.prependRight(
+        scriptIndexStart(content),
+        `
+import { classes as __CLASSES__ } from '${deep}/mdc';
 import { get_current_component } from 'svelte/internal';
 const component = get_current_component();
 
@@ -68,28 +170,16 @@ export { __STYLE__ as style };
 ]
 */
 
-export let ${default_mods.map(v => kebabCase.reverse(v)).join(', ')};
-`;
+export let ${default_mods.map(v => toModifier(v)).join(', ')};
 
-      magic.prependRight(scriptStart, e1);
-      // console.log(e1);
+${inject_for_touch(modifiers)}
+`
+      );
+      content = magic.toString();
+      content = walker(content, modifiers);
 
-      let e2 = 'on={component} style={__STYLE__} ';
-      modifiers.modifiers.forEach(v => {
-        e2 += `class:${modifiers.className}--${v}={${kebabCase.reverse(v)}} `;
-      });
-
-      const match = content.match(regexp);
-      scriptStart = match.index;
-
-      magic.prependRight(scriptStart, e2);
-      magic.prependRight(scriptStart + match[0].length - 1, ' {__CLASS__}');
-      // console.log(scriptStart);
-
-      const code = magic.toString();
-
-      // console.log(code);
-      return { code };
+      // console.log(content);
+      return { code: content };
     }
   };
 };

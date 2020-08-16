@@ -1,12 +1,75 @@
-<script>
+<script context="module">
 import Node from 'svelte-plugin-node';
+import MDCButton from '../MDCButton';
+import MDCIconButton from '../MDCIconButton';
+const ACTION_TYPES = { button: MDCButton, icon: MDCIconButton };
 
+function move_node(node) {
+  if (typeof window === 'undefined') return;
+  if (!node || node.parentElement === document.body) return;
+  document.body.append(node);
+}
+</script>
+
+<script>
 export let tag = 'div';
+
+export let label = 'label';
+export let timeout = 0;
+$: timeout = +timeout || 0;
+$: if (timeout < 100) timeout *= 1000;
+
+export let hiding = true;
+export let opened = false;
+let sto;
+$: if (opened && timeout) {
+  clearTimeout(sto);
+  sto = setTimeout(() => (opened = false), timeout);
+}
+
+import { tick } from 'svelte';
+async function preopen(opened) {
+  (opening = false), (closing = false);
+  await tick();
+  if (opened) {
+    (opening = true), (closing = false);
+    await tick();
+    setTimeout(() => (open = true));
+    setTimeout(() => (opening = false), 1000);
+  } else {
+    (opening = false), (closing = true);
+    await tick();
+    setTimeout(() => (open = false), 1000);
+    setTimeout(() => (closing = false), 1000);
+  }
+}
+$: preopen(opened);
+
+$: move_node(node);
+
+const defaultClick = e => console.log('Dialog click', e);
+export let actions = [
+  { type: 'icon', icon: 'close', label: 'close', click: defaultClick },
+  { type: 'button', icon: 'close', label: 'close', click: defaultClick }
+];
 </script>
 
 <template lang="pug">
 svelte:options(immutable="{true}")
 
-Node.mdc-dialog(bind:tag, bind:node)
-  slot
++if('!hiding || opening || open || closing')
+  Node.mdc-dialog(bind:tag, bind:node)
+    .mdc-dialog__container
+      .mdc-dialog__surface(role="alertdialog", aria-modal="true")
+        +if('label')
+          .mdc-dialog__content {label}
+
+        +if('actions.length')
+          .mdc-dialog__actions
+            +each('actions as action')
+              +if('action.type in ACTION_TYPES')
+                svelte:component.mdc-dialog__button(
+                  "{...action}", this!="{ACTION_TYPES[action.type]}",
+                  on:click!="{action.click || defaultClick}")
+    .mdc-dialog__scrim
 </template>

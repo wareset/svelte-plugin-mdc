@@ -14,9 +14,8 @@ module.exports = function get_css_modifiers(filename) {
 
   const name = kebabCase(parse(filename).name).slice(1);
 
-  let pathname = name;
-  let pathfile = name;
-
+  let pathname = name.split(/(\_|[^\w-])+/)[0];
+  let pathfile = pathname;
   let className = `mdc-${name}`;
 
   if (!pathname.indexOf('chip')) {
@@ -27,6 +26,8 @@ module.exports = function get_css_modifiers(filename) {
     pathfile = pathname = 'touch-target';
     className = 'mdc-touch-target-wrapper';
   } else if (pathname === 'text-field') pathname = 'textfield';
+
+  console.log({ pathname, pathfile, className });
 
   let path;
   try {
@@ -41,7 +42,17 @@ module.exports = function get_css_modifiers(filename) {
   const code = sass
     .renderSync({ includePaths: [resolve(path, '../..')], file, fiber })
     .css.toString();
-  const rules = css.parse(code).stylesheet.rules;
+
+  const rules = [];
+  const get_rules = arr => {
+    arr.forEach(v => {
+      if (v.type === 'rule') rules.push(v);
+      if (Array.isArray(v.rules)) get_rules(v.rules);
+    });
+  };
+  get_rules(css.parse(code).stylesheet.rules);
+
+  // console.log(rules);
 
   let classes = [];
   rules.forEach(({ selectors }) => {
@@ -49,7 +60,7 @@ module.exports = function get_css_modifiers(filename) {
     classes = classes.concat(...[...selectors].map(v => v.split(/[\s.]+/g)));
   });
   classes = unique(
-    classes.filter(v => !v.indexOf(className)).map(v => v.split(/[^\w-]/g)[0])
+    classes.filter(v => !v.indexOf(className)).map(v => v.split(/[^\w-]+/g)[0])
   );
 
   // console.log(classes);

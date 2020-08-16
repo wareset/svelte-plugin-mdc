@@ -2,37 +2,49 @@
 import Node from 'svelte-plugin-node';
 import MDCMenuSurface from '../MDCMenuSurface';
 import MDCList from '../MDCList';
+import MDCListItem from '../MDCListItem';
 import MDCIcon from '../MDCIcon';
 import MDCLineRipple from '../lib/MDCLineRipple';
 import MDCFloatingLabel from '../lib/MDCFloatingLabel';
 import MDCNotchedOutline from '../lib/MDCNotchedOutline';
+import MDCButton from '../MDCButton';
 
 let listEl, inputEl;
 export let tag = 'div';
 export let icon = '';
 export let label = 'label';
+export let options = []; //['test1', { label: 'qwe', value: 'asd' }];
 export let multiple = false;
 export let value = '';
 if (value && !group) group = value.split(/\s*\,\s*/g);
 $: value = Array.isArray(group) ? group.join(', ') : '';
 $: if (node) node.style.maxWidth = '100%';
 
-const onFocus = () => {
+export let opened = false;
+$: if (inputEl) opened ? inputEl.focus() : inputEl.blur();
+
+const onFocus = async () => {
   // console.log('onFocus');
-  focused = true;
+  opened = true;
 };
-const onBlur = e => {
+import { tick } from 'svelte';
+const onBlur = async e => {
   // console.log('onBlur', e);
-  if (multiple && listEl.contains(e.relatedTarget)) inputEl.focus();
-  else setTimeout(() => (focused = false), 125);
+  if (multiple && inputEl && listEl.contains(e.relatedTarget)) inputEl.focus();
+  else {
+    await tick();
+    setTimeout(() => (opened = false), 125);
+  }
 };
 
 $: console.log('MDCSelect', group);
 
+$: focused = !!opened;
 $: noLabel = !label;
 $: filled = !outlined;
 $: labelFloating = !!value;
-$: withLeadingIcon = icon;
+$: withLeadingIcon = !!icon;
+$: activated = !!focused;
 </script>
 
 <template lang="pug">
@@ -43,7 +55,7 @@ mixin LABEL
     MDCFloatingLabel("{label}", "{required}", floatAbove!="{labelFloating}")
 
 Node.mdc-select(bind:tag, bind:node)
-  .mdc-select__anchor(role="button", aria-haspopup="listbox", aria-expanded!="{focused}",
+  .mdc-select__anchor(role="button", aria-haspopup="listbox", aria-expanded!="{opened}",
     aria-required!="{required}", aria-disabled!="{disabled}")
     +if('!outlined')
       span.mdc-select__ripple
@@ -53,7 +65,9 @@ Node.mdc-select(bind:tag, bind:node)
 
     +LABEL
 
-    span.mdc-select__selected-text {value}
+    span.mdc-select__selected-text(aria-disabled="false", aria-expanded!="{opened}")
+      span {value}
+
     span.mdc-select__dropdown-icon
       svg.mdc-select__dropdown-icon-graphic(viewBox="7 10 10 5" focusable="false")
         polygon.mdc-select__dropdown-icon-inactive(stroke="none",
@@ -62,14 +76,21 @@ Node.mdc-select(bind:tag, bind:node)
           fill-rule="evenodd", points="7 15 12 10 17 15")
 
     +if('!outlined')
-      MDCLineRipple(active!="{focused}")
+      MDCLineRipple(bind:active!="{opened}")
 
     Node(tag="input", type="select", on!="{{ focus: onFocus, blur: onBlur }}",
       "{required}", "{disabled}", "{multiple}",
       on:focus, on:blur, on:change, on:input, bind:node!="{inputEl}"
-      style!="{`display:block; position:absolute; width:100%;height:100%; opacity:0.0001; cursor:pointer; z-index:${!focused ? 1 : 0};`}")
+      style!="{`display:block; position:absolute; width:100%;height:100%; opacity:0.0001; cursor:pointer; z-index:${!opened ? 1 : 0}; left:0;top:0;`}")
 
-  MDCMenuSurface.mdc-select__menu2(open!="{focused}", fullwidth)
+  MDCMenuSurface.mdc-select__menu2(bind:opened, fullwidth, hiding!="{false}")
     MDCList(bind:group, bind:multiple, role="listbox", bind:node!="{listEl}")
+      +if('options')
+        +each('options as option')
+          +if('(typeof option !== `object` && (option = { value: option })) || 1')
+            MDCListItem("{...option}")
       slot
+      +if('multiple')
+        MDCListItem(label="", secondary="", disabled)
+          MDCButton(raised, label="Apply", on:click!="{() => (opened=false)}")
 </template>

@@ -1,12 +1,35 @@
 <script>
 import Node from 'svelte-plugin-node';
 
-export let tag = 'div';
+export let tag = 'ul';
+export let columnRatio = 1.6;
+export let columnCount = 5;
+export let columnGap = '16px';
+$: if (typeof columnGap === 'number') columnGap = `${columnGap}px`;
+
+import { setContext } from 'svelte';
+import { writable } from 'svelte/store';
+const masonry$ = writable(masonry);
+const columnRatio$ = writable(columnRatio);
+const columnCount$ = writable(columnCount);
+const columnGap$ = writable(columnGap);
+$: $masonry$ = masonry;
+$: $columnRatio$ = columnRatio;
+$: $columnCount$ = columnCount;
+$: $columnGap$ = columnGap;
+
+setContext('MDCImageList', {
+  masonry$,
+  columnRatio$,
+  columnCount$,
+  columnGap$
+});
 </script>
 
 <template lang="pug">
 svelte:options(immutable="{true}")
 
-Node.mdc-image-list(bind:tag, bind:node)
+Node.mdc-image-list(bind:tag, bind:node,
+  style!="{masonry ? { columnCount, columnGap } : {}}")
   slot
 </template>

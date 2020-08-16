@@ -1,12 +1,52 @@
 <script>
 import Node from 'svelte-plugin-node';
+import { uid } from '../../mdc';
+import MDCIcon from '../MDCIcon';
 
 export let tag = 'div';
+export let id = 'mdc-chip-' + uid();
+export let value = id;
+
+export let label = value;
+export let icon, iconTrailing;
+
+export let role = 'button';
+
+import { getContext } from 'svelte';
+const { listGroup$ } = getContext('MDCChipSet');
+
+$: selected = !!checked;
+$: leadingHidden = !!selected; // && role === 'checkbox';
 </script>
 
 <template lang="pug">
 svelte:options(immutable="{true}")
 
-Node.mdc-chip(bind:tag, bind:node)
-  slot
+Node.mdc-chip(bind:tag, bind:node, role="row")
+  .mdc-chip__ripple
+
+  +if('icon')
+    MDCIcon.mdc-chip__icon.mdc-chip__icon--leading(
+      style="margin-right:0.125em;"
+      class!="{leadingHidden ? `mdc-chip__icon--leading-hidden` : ``}") {icon}
+
+  +if('role === `checkbox`')
+    span.mdc-chip__checkmark(style!="{!checked ? `` : `width:1.125em;`}")
+      svg.mdc-chip__checkmark-svg(viewBox="-2 -3 30 30")
+        path.mdc-chip__checkmark-path(fill="none" stroke="black",
+          d="M1.73,12.91 8.1,19.28 22.79,4.59")
+
+  span(role="gridcell")
+    span.mdc-chip__primary-action("{role}", tabindex="0")
+      +if('touch')
+        .mdc-chip__touch
+      span.mdc-chip__text {label}
+
+  +if('iconTrailing')
+    span(role="gridcell")
+      MDCIcon.mdc-chip__icon.mdc-chip__icon--trailing(tabindex="-1") {iconTrailing}
+
+  Node(tag="input", type="checkbox",
+    bind:id, bind:value, bind:group!="{$listGroup$}", bind:checked, bind:indeterminate,
+    style="display:block;position:absolute; z-index:1;opacity:0.0001; width:100%;height:100%; top:0;left:0;")
 </template>

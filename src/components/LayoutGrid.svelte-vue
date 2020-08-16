@@ -1,12 +1,32 @@
 <script>
 import Node from 'svelte-plugin-node';
+import MDCLayoutGrid__inner from '../MDCLayoutGrid__inner';
 
 export let tag = 'div';
+
+import { setContext } from 'svelte';
+import { writable } from 'svelte/store';
+
+export let container;
+$: fixedColumnWidth = container;
+
+export let left;
+$: alignLeft = left;
+
+export let right;
+$: alignRight = right;
+
+const that$ = writable('');
+setContext('MDCLayoutGrid', that$);
 </script>
 
 <template lang="pug">
 svelte:options(immutable="{true}")
 
 Node.mdc-layout-grid(bind:tag, bind:node)
-  slot
+  +if('$that$ === `cell`')
+    MDCLayoutGrid__inner
+      slot
+    +else
+      slot
 </template>

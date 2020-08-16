@@ -11,20 +11,20 @@
     "LICENSE",
     "README.md"
   ],
-  "dependencies": {
-    "@wareset/unique": "^1.0.2",
-    "kebab-case": "^1.0.0",
-    "material-components-web": "^7.0.0"
-  },
-  "peerDependencies": {
-    "svelte": "^3.24.1"
-  },
   "scripts": {
     "build": "node ./scripts/build.js",
     "dev": "node ./scripts/dev.js",
     "docs:dev": "npm run dev --prefix docs",
     "docs:export": "npm run export --prefix docs",
     "docs:deploy": "npm run docs:export && node ./scripts/gh-pages.js"
+  },
+  "peerDependencies": {
+    "svelte": "^3.24.1"
+  },
+  "dependencies": {
+    "@wareset/unique": "^1.0.2",
+    "kebab-case": "^1.0.0",
+    "material-components-web": "^7.0.0"
   },
   "devDependencies": {
     "chokidar": "^3.4.2",
